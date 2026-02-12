@@ -96,7 +96,8 @@ const content = {
       share: "Share",
       download: "Download Report (PDF)",
       twitter: "Twitter/X",
-      facebook: "Facebook"
+      facebook: "Facebook",
+      qrLabel: "Scan to share this website"
     }
   },
   fa: {
@@ -195,7 +196,8 @@ const content = {
       share: "اشتراک",
       download: "دانلود گزارش (PDF)",
       twitter: "Twitter/X",
-      facebook: "Facebook"
+      facebook: "Facebook",
+      qrLabel: "برای اشتراک‌گذاری این وب‌سایت اسکن کنید"
     }
   },
   de: {
@@ -294,7 +296,8 @@ const content = {
       share: "Teilen",
       download: "Bericht herunterladen (PDF)",
       twitter: "Twitter/X",
-      facebook: "Facebook"
+      facebook: "Facebook",
+      qrLabel: "Scannen, um diese Website zu teilen"
     }
   },
   lt: {
@@ -393,7 +396,8 @@ const content = {
       share: "Dalintis",
       download: "Atsisiųsti ataskaitą (PDF)",
       twitter: "Twitter/X",
-      facebook: "Facebook"
+      facebook: "Facebook",
+      qrLabel: "Nuskaitykite, kad galėtumėte pasidalinti šia svetaine"
     }
   }
 };
@@ -422,7 +426,13 @@ async function loadMemoryData() {
 }
 
 // ===== State =====
-let currentLang = 'en';
+function getLangFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const lang = params.get('lang');
+  return (lang && content[lang]) ? lang : 'en';
+}
+
+let currentLang = getLangFromURL();
 
 // ===== DOM Ready =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -541,6 +551,21 @@ function applyLanguage(lang) {
   document.querySelectorAll('[data-share]').forEach(el => {
     el.textContent = c.footer[el.dataset.share] || el.textContent;
   });
+
+  // QR Code — swap image per language, cache-bust with timestamp
+  const qrImg = document.getElementById('qr-code-img');
+  if (qrImg) {
+    qrImg.src = 'assets/qrcode-' + lang + '.jpg?' + Date.now();
+  }
+  const qrLabel = document.getElementById('qr-label');
+  if (qrLabel) {
+    qrLabel.textContent = c.footer.qrLabel;
+  }
+
+  // Update URL query param without page reload
+  const url = new URL(window.location);
+  url.searchParams.set('lang', lang);
+  window.history.replaceState({}, '', url);
 
   // Dynamic data-en / data-fa elements
   document.querySelectorAll('[data-en]').forEach(el => {
